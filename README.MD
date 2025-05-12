@@ -30,7 +30,7 @@ source env/Scripts/activate
 ### install dependencies
 
 ```bash
-
+pip install numpy pyqtgraph pyqt5 wfdb
 ```
 
 ### create requirements.txt
