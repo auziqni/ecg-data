@@ -1,57 +1,130 @@
-# pengolahan singal untuk ecg smulator dari pysionet
+# ECG Signal Simulator from PhysioNet
 
-## creating app
+Simulator ini digunakan untuk menampilkan sinyal EKG dari dataset PhysioNet menggunakan Python, PyQtGraph, dan PyQt5.
 
-create main.py file
-create README.md file
-create .gitignore file
+## 🛠️ Developer Guide (How to Build the App)
 
-### git init
+Langkah-langkah untuk membangun aplikasi dari awal:
+
+### 1. Buat Folder Proyek & File Dasar
+
+```bash
+mkdir ecg-simulator
+cd ecg-simulator
+touch main.py README.md .gitignore
+```
+
+### 2. Inisialisasi Git
 
 ```bash
 git init
 git add .
 git commit -m "initial commit"
-
 ```
 
-### create virtual environment
+### 3. Buat Virtual Environment
 
 ```bash
 python -m venv env
 ```
 
-### activate virtual environment
+### 4. Aktivasi Virtual Environment
+
+#### Windows
 
 ```bash
-source env/Scripts/activate
+env\Scripts\activate
 ```
 
-### install dependencies
+#### MacOS/Linux
+
+```bash
+source env/bin/activate
+```
+
+### 5. Install Dependensi
 
 ```bash
 pip install numpy pyqtgraph pyqt5 wfdb
 ```
 
-### create requirements.txt
+### 6. Simpan ke `requirements.txt`
 
 ```bash
 pip freeze > requirements.txt
 ```
 
-### deactivate virtual environment
+### 7. Menonaktifkan Virtual Environment
 
 ```bash
 deactivate
 ```
 
-## clone app
+---
 
-instll from requirements.txt
+## 🚀 Client Guide (How to Use the App)
+
+Langkah-langkah untuk menjalankan aplikasi ini di komputer lain:
+
+### 1. Clone Repository
+
+```bash
+git clone <url-repository-anda>
+cd ecg-simulator
+```
+
+### 2. Buat Virtual Environment
+
+```bash
+python -m venv env
+```
+
+### 3. Aktivasi Virtual Environment
+
+#### Windows
+
+```bash
+env\Scripts\activate
+```
+
+#### MacOS/Linux
+
+```bash
+source env/bin/activate
+```
+
+### 4. Install Dependensi
 
 ```bash
 pip install -r requirements.txt
 ```
+
+### 5. Jalankan Aplikasi
+
+```bash
+python main.py
+```
+
+### 6. Jika Terjadi Perubahan pada Repository (on-change update)
+
+Untuk menarik update dari repository, gunakan:
+
+```bash
+git pull
+```
+
+Jika terjadi konflik atau error dan Anda ingin menyamakan ulang kondisi lokal dengan branch utama di remote, gunakan:
+
+```bash
+git fetch origin
+git reset --hard origin/main
+```
+
+⚠️ **PERINGATAN:** Perintah di atas akan menghapus semua perubahan lokal, termasuk file yang telah dibuat namun belum di-commit. Pastikan sudah melakukan backup jika ada data penting.
+
+---
+
+Selamat mencoba! Jika ada masalah, silakan buat issue atau hubungi developer.
 
 # ECG Signal Validation Metrics with Medical Standards
 

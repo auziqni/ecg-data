@@ -5,3 +5,9 @@ env/
 ENV/
 
 hasil/
+archive/
+mock/
+
+*.rar
+*.zip
+*.tar.gz
