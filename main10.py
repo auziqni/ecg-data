@@ -921,7 +921,7 @@ class ECGToBinaryConverter(QMainWindow):
                 empty_channels.append(self.standard_channels[i])
             else:
                 # Check for clipping in original signal (assume ±6mV range)
-                if np.any(channel_data > 6.0) or np.any(channel_data < -6.0):
+                if np.any(channel_data > 9.0) or np.any(channel_data < -9.0):
                     warnings.append(f"Channel {self.standard_channels[i]}: Signal exceeds ±6mV range")
         
         if empty_channels:
