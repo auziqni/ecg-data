@@ -1,4 +1,4 @@
-# validator.py
+# validator-10.py
 import sys
 import numpy as np
 import pandas as pd
@@ -16,7 +16,7 @@ from scipy import signal as scipy_signal
 from scipy.interpolate import interp1d
 from scipy.fft import fft, fftfreq
 
-class ECGSignalValidator(QMainWindow):
+class ECGSignalValidator10(QMainWindow):
     def __init__(self):
         super().__init__()
         
@@ -31,13 +31,14 @@ class ECGSignalValidator(QMainWindow):
         self.reference_sample_rate = 360  # From PhysioNet
         self.measured_sample_rate = 1000  # Default oscilloscope rate
         
-        # Standard channel names
-        self.channel_names = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 
-                             'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
+        # 10-lead electrode names (RA, LA, LL, RL, V1-V6)
+        self.channel_names = ['RA', 'LA', 'LL', 'RL', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
+        # Mapping to binary file positions (0-11, skipping positions 4 and 5 which are padding)
+        self.channel_binary_mapping = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11]  # Skip positions 4,5
         self.current_channel = 0
         
         # Data storage
-        self.reference_data = None  # 12-channel reference from binary
+        self.reference_data = None  # 10-channel reference from binary
         self.measured_data = {}     # Dictionary of measured signals by channel
         self.time_reference = None
         self.time_measured = {}
@@ -51,10 +52,10 @@ class ECGSignalValidator(QMainWindow):
         self.time_offset = 0.0
         
         # Signal folder
-        self.signal_folder = "signal"
+        self.signal_folder = "signal10"
         
         # UI Setup
-        self.setWindowTitle("ECG Signal Validation Tool - Enhanced Metrics")
+        self.setWindowTitle("ECG Signal Validation Tool - 10 Lead Mode")
         self.setGeometry(100, 50, 1400, 1000)
         
         # Main widget and layout
@@ -74,7 +75,7 @@ class ECGSignalValidator(QMainWindow):
     
     def create_control_panel(self):
         # Control panel
-        self.control_group = QGroupBox("Controls")
+        self.control_group = QGroupBox("Controls - 10 Lead Mode")
         self.main_layout.addWidget(self.control_group)
         self.control_layout = QGridLayout(self.control_group)
         
@@ -223,12 +224,12 @@ class ECGSignalValidator(QMainWindow):
         self.control_layout.addWidget(self.nav_slider, 5, 1, 1, 5)
         
         # Status info
-        self.status_label = QLabel("Status: Ready")
+        self.status_label = QLabel("Status: Ready for 10-lead mode")
         self.control_layout.addWidget(self.status_label, 6, 0, 1, 6)
         
         # === METRICS DISPLAY SECTION ===
         # Row 7: Primary metrics (SNR and MSE)
-        self.metrics_label = QLabel("Validation Metrics:")
+        self.metrics_label = QLabel("Validation Metrics (10-Lead):")
         self.metrics_label.setStyleSheet("font-weight: bold; color: darkblue;")
         self.control_layout.addWidget(self.metrics_label, 7, 0)
         
@@ -331,22 +332,22 @@ class ECGSignalValidator(QMainWindow):
             if not os.path.exists(self.signal_folder):
                 os.makedirs(self.signal_folder)
                 QMessageBox.warning(self, "Warning", 
-                    f"Signal folder '{self.signal_folder}' created. Please add ref.bin and CSV files.")
+                    f"Signal folder '{self.signal_folder}' created. Please add rev.bin and CSV files.")
                 return
             
             # Load reference binary
-            ref_path = os.path.join(self.signal_folder, "ref.bin")
+            ref_path = os.path.join(self.signal_folder, "rev.bin")
             if not os.path.exists(ref_path):
                 QMessageBox.critical(self, "Error", 
-                    "ref.bin not found in signal folder!")
+                    "rev.bin not found in signal10 folder!")
                 return
             
             self.load_reference_binary(ref_path)
             
             # Debug info
             if self.reference_data is not None:
-                print("\nReference data loaded:")
-                for i in range(12):
+                print("\n10-Lead Reference data loaded:")
+                for i in range(10):
                     channel_data = self.reference_data[i]
                     non_zero = channel_data[channel_data != 0]
                     if len(non_zero) > 0:
@@ -354,37 +355,37 @@ class ECGSignalValidator(QMainWindow):
                     else:
                         print(f"Channel {self.channel_names[i]}: Empty (all zeros)")
             
-            # Load all CSV files
+            # Load all CSV files (RA.csv, LA.csv, LL.csv, RL.csv, V1.csv-V6.csv)
             self.measured_data = {}
             self.time_measured = {}
             
-            for i in range(12):
-                csv_filename = f"{i+1}.csv"
+            for i in range(10):
+                csv_filename = f"{self.channel_names[i]}.csv"
                 csv_path = os.path.join(self.signal_folder, csv_filename)
                 
                 if os.path.exists(csv_path):
                     self.load_measured_csv(csv_path, i)
-                    self.status_label.setText(f"Loaded channel {i+1}")
+                    self.status_label.setText(f"Loaded 10-lead channel {self.channel_names[i]}")
                 else:
                     # Create mock data (zero signal)
                     num_samples = int(len(self.time_reference) * self.measured_sample_rate / self.reference_sample_rate)
                     self.time_measured[i] = np.linspace(0, self.time_reference[-1], num_samples)
                     self.measured_data[i] = np.zeros(num_samples)
-                    print(f"Channel {i+1}: Using mock data (file not found)")
+                    print(f"10-lead Channel {self.channel_names[i]}: Using mock data (file not found)")
             
             # Update navigation slider
             if self.reference_data is not None:
                 max_samples = len(self.reference_data[0])
                 self.nav_slider.setMaximum(max(0, max_samples - self.window_size))
             
-            self.status_label.setText("All data loaded successfully")
+            self.status_label.setText("All 10-lead data loaded successfully")
             self.update_plots()
             
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load data: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load 10-lead data: {str(e)}")
     
     def load_reference_binary(self, filepath):
-        """Load binary reference file"""
+        """Load binary reference file - 10 lead mode (skip padding channels 4,5)"""
         try:
             file_size = os.path.getsize(filepath)
             num_samples = file_size // (12 * 2)  # 12 channels, 2 bytes per sample
@@ -393,8 +394,8 @@ class ECGSignalValidator(QMainWindow):
             with open(filepath, 'rb') as f:
                 raw_data = f.read()
             
-            # Initialize array for 12 channels
-            self.reference_data = np.zeros((12, num_samples))
+            # Initialize array for 12 channels (including padding)
+            full_data = np.zeros((12, num_samples))
             
             # Parse data - file format is sequential: Ch1_S1, Ch2_S1, ..., Ch12_S1, Ch1_S2, ...
             idx = 0
@@ -402,21 +403,27 @@ class ECGSignalValidator(QMainWindow):
                 for channel in range(12):
                     # Read 2 bytes as unsigned 16-bit little-endian
                     value = struct.unpack('<H', raw_data[idx:idx+2])[0]
-                    self.reference_data[channel, sample] = value
+                    full_data[channel, sample] = value
                     idx += 2
+            
+            # Extract only the 10 active channels (skip positions 4 and 5)
+            # Mapping: RA(0), LA(1), LL(2), RL(3), skip(4), skip(5), V1(6), V2(7), V3(8), V4(9), V5(10), V6(11)
+            self.reference_data = np.zeros((10, num_samples))
+            for i, binary_pos in enumerate(self.channel_binary_mapping):
+                self.reference_data[i] = full_data[binary_pos]
             
             # Create time array
             self.time_reference = np.arange(num_samples) / self.reference_sample_rate
             
             # Convert ADC to mV for display
-            for i in range(12):
+            for i in range(10):
                 self.reference_data[i] = self.adc_to_mv(self.reference_data[i])
             
-            print(f"Loaded binary file: {num_samples} samples, {12} channels")
-            print(f"ADC range: {np.min(self.reference_data):.2f} - {np.max(self.reference_data):.2f} (before conversion)")
+            print(f"Loaded 10-lead binary file: {num_samples} samples, {10} active channels")
+            print(f"Binary structure: RA,LA,LL,RL,0,0,V1,V2,V3,V4,V5,V6 (extracted 10 active)")
             
         except Exception as e:
-            raise Exception(f"Error loading binary file: {str(e)}")
+            raise Exception(f"Error loading 10-lead binary file: {str(e)}")
     
     def load_measured_csv(self, filepath, channel_idx):
         """Load CSV file from oscilloscope"""
@@ -727,8 +734,9 @@ class ECGSignalValidator(QMainWindow):
             # Additional info in status
             overlap_duration = time_end - time_start
             lag_time = lag / self.reference_sample_rate if self.reference_sample_rate > 0 else 0
+            channel_name = self.channel_names[self.current_channel]
             self.status_label.setText(
-                f"Status: Overlap {overlap_duration:.2f}s, {min_len} samples, Lag: {lag_time:.3f}s"
+                f"Status: {channel_name} - Overlap {overlap_duration:.2f}s, {min_len} samples, Lag: {lag_time:.3f}s"
             )
             
         except Exception as e:
@@ -739,7 +747,7 @@ class ECGSignalValidator(QMainWindow):
             self.thd_label.setText("THD: Error")
             self.correlation_label.setText("Correlation: Error")
             self.status_label.setText(f"Error: {str(e)}")
-            print(f"Metrics calculation error: {e}")
+            print(f"10-lead metrics calculation error: {e}")
     
     def update_time_offset(self, value):
         """Update time offset for measured signal"""
@@ -794,7 +802,8 @@ class ECGSignalValidator(QMainWindow):
             # Update time offset
             self.time_offset_spinbox.setValue(time_offset)
             
-            self.status_label.setText(f"Auto-aligned with offset: {time_offset:.3f}s")
+            channel_name = self.channel_names[self.current_channel]
+            self.status_label.setText(f"Auto-aligned {channel_name} with offset: {time_offset:.3f}s")
             
         except Exception as e:
             QMessageBox.warning(self, "Warning", f"Auto-align failed: {str(e)}")
@@ -837,14 +846,18 @@ class ECGSignalValidator(QMainWindow):
             measured_data_visible = np.zeros_like(ref_data_visible)
         
         # Update plots based on display mode
+        channel_name = self.channel_names[self.current_channel]
+        
         if self.display_mode == "side_by_side":
             # Update reference plot
             self.ref_plot_line.setData(ref_time_visible, ref_data_visible)
-            self.ref_plot_widget.setTitle(f"Reference Signal - Channel {self.channel_names[self.current_channel]}")
+            self.ref_plot_widget.setTitle(f"Reference Signal - Channel {channel_name}")
             
             # Update measured plot
             self.measured_plot_line.setData(measured_time_visible, measured_data_visible)
-            self.measured_plot_widget.setTitle(f"Measured Signal - Channel {self.channel_names[self.current_channel]} (Scale: {scale:.1f}x, Offset: {v_offset:.3f}V)")
+            scale = self.scale_spinbox.value()
+            v_offset = self.signal_offset_spinbox.value()
+            self.measured_plot_widget.setTitle(f"Measured Signal - Channel {channel_name} (Scale: {scale:.1f}x, Offset: {v_offset:.3f}V)")
             
             # Auto-range Y axis
             if len(ref_data_visible) > 0:
@@ -859,7 +872,9 @@ class ECGSignalValidator(QMainWindow):
             # Update overlay plot
             self.overlay_ref_line.setData(ref_time_visible, ref_data_visible)
             self.overlay_measured_line.setData(measured_time_visible, measured_mv)
-            self.overlay_plot.setTitle(f"Signal Comparison - Channel {self.channel_names[self.current_channel]} (Scale: {scale:.1f}x, Offset: {v_offset:.3f}V)")
+            scale = self.scale_spinbox.value()
+            v_offset = self.signal_offset_spinbox.value()
+            self.overlay_plot.setTitle(f"Signal Comparison - Channel {channel_name} (Scale: {scale:.1f}x, Offset: {v_offset:.3f}V)")
             
             # Auto-range
             if len(ref_data_visible) > 0 and len(measured_mv) > 0:
@@ -881,23 +896,25 @@ if __name__ == "__main__":
     app.setStyle("Fusion")
     
     # Set application properties
-    app.setApplicationName("ECG Signal Validator")
-    app.setApplicationVersion("2.0")
+    app.setApplicationName("ECG Signal Validator - 10 Lead")
+    app.setApplicationVersion("1.0")
     
     # Create main window
-    window = ECGSignalValidator()
+    window = ECGSignalValidator10()
     window.show()
     
-    print("=== ECG Signal Validator Started ===")
-    print("Enhanced with 5 validation metrics:")
+    print("=== ECG Signal Validator - 10 Lead Mode Started ===")
+    print("Enhanced with 5 validation metrics for 10-lead signals:")
     print("1. SNR (Signal-to-Noise Ratio)")
     print("2. MSE (Mean Squared Error)")  
     print("3. Peak Error (Maximum Absolute Error)")
     print("4. THD (Total Harmonic Distortion)")
     print("5. Cross-Correlation")
-    print("\nPlace your files in the 'signal' folder:")
-    print("- ref.bin (reference binary from PhysioNet)")
-    print("- 1.csv to 12.csv (measured data from oscilloscope)")
-    print("=====================================")
+    print("\nPlace your files in the 'signal10' folder:")
+    print("- rev.bin (reference binary from PhysioNet - 10 lead mode)")
+    print("- RA.csv, LA.csv, LL.csv, RL.csv, V1.csv, V2.csv, V3.csv, V4.csv, V5.csv, V6.csv")
+    print("Channel mapping: RA, LA, LL, RL, V1, V2, V3, V4, V5, V6")
+    print("Binary structure: RA,LA,LL,RL,0,0,V1,V2,V3,V4,V5,V6 (10 active channels)")
+    print("=========================================================")
     
     sys.exit(app.exec_())

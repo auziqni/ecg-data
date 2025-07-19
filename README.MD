@@ -33,13 +33,13 @@ python -m venv env
 #### Windows
 
 ```bash
-env\Scripts\activate
+env Scripts activate
 ```
 
 #### MacOS/Linux
 
 ```bash
-source env/bin/activate
+source env/Scripts/activate
 ```
 
 ### 5. Install Dependensi
